@@ -8,7 +8,7 @@ import connectDB from "./config/db.js";
 
 // Routes
 import adminRoutes from "./routes/adminRoutes.js";
-//import userRoutes from "./routes/userRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 await connectDB();
 
@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 // API Routes
 // =======================
 app.use("/api/admin", adminRoutes);
-//app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 
 // =======================
 // Start server
