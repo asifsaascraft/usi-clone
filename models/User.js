@@ -1,0 +1,96 @@
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const UserSchema = new mongoose.Schema(
+  {
+    prefix: {
+      type: String,
+      required: [true, "Prefix is required"],
+    },
+    name: {
+      type: String,
+      required: [true, "Name is required"],
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+    },
+    mobile: {
+      type: String,
+      required: [true, "Mobile is required"],
+      match: [/^\d{10}$/, "Mobile number must be 10 digits"],
+      trim: true,
+      unique: true,
+    },
+    qualification: {
+      type: String,
+      required: [true, "Qualification is required"],
+      trim: true,
+    },
+    affiliation: {
+      type: String,
+      trim: true,
+    },
+    country: {
+      type: String,
+      required: [true, "Country is required"],
+      trim: true,
+    },
+    role: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "user",
+    },
+    status: {
+      type: String,
+      enum: ["Pending", "Approved"],
+      default: "Pending",
+    },
+    membershipNumber: {
+      type: String,
+    },
+    password: {
+      type: String,
+    },
+
+    //  For forgot-password/reset-password
+    passwordResetToken: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    passwordResetExpires: {
+      type: Date,
+      default: null,
+    },
+  },
+  { timestamps: true }
+);
+
+
+//  Hash password before saving
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+//  Compare entered password with hashed password
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+//  Generate JWT token
+UserSchema.methods.getJwtToken = function () {
+  return jwt.sign(
+    { id: this._id, role: this.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+};
+
+export default mongoose.models.User ||
+  mongoose.model("User", UserSchema);

@@ -1,0 +1,57 @@
+import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import cors from "cors";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import connectDB from "./config/db.js";
+
+// Routes
+import adminRoutes from "./routes/adminRoutes.js";
+//import userRoutes from "./routes/userRoutes.js";
+
+await connectDB();
+
+const app = express();
+
+// =======================
+// CORS setup for multiple frontends
+// =======================
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.ADMIN_FRONTEND_URL,
+  process.env.USER_FRONTEND_URL,
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow any origin (including browser requests)
+    callback(null, true);
+  },
+  credentials: true,
+};
+
+
+app.use(express.json());
+app.use(cors(corsOptions));
+app.use(cookieParser()); // Needed to read cookies (refresh token)
+app.use(morgan("dev"));
+
+// =======================
+// Health check
+// =======================
+app.get("/", (req, res) => {
+  res.send("USI Backend is running ..... ");
+});
+
+// =======================
+// API Routes
+// =======================
+app.use("/api/admin", adminRoutes);
+//app.use("/api/users", userRoutes);
+
+// =======================
+// Start server
+// =======================
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
