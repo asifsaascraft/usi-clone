@@ -11,7 +11,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 import webinarRoutes from "./routes/webinarRoutes.js";
-
+import speakerRoutes from "./routes/speakerRoutes.js";
 
 await connectDB();
 
@@ -54,6 +54,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 
 app.use("/api", webinarRoutes);
+app.use("/api", speakerRoutes);
 
 
 // =======================
