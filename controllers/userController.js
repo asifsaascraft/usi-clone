@@ -264,3 +264,23 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+// =======================
+// Get All Users – Admin only
+// =======================
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: "user" })
+      .select("-password -passwordResetToken -passwordResetExpires")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "All users fetched successfully",
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    console.error("Get all users error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

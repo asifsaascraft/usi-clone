@@ -7,6 +7,7 @@ import {
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  getAllUsers,
 } from "../controllers/userController.js";
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
 import { uploadUSIProfileImage } from "../middlewares/uploadMiddleware.js";
@@ -53,6 +54,14 @@ router.put(
   authorizeRoles("user"), // user-only
   uploadUSIProfileImage.single("profilePicture"), // handles profile image upload
   updateUserProfile
+);
+
+// Get all users – Admin only
+router.get(
+  "/all",
+  protect,
+  authorizeRoles("admin"),
+  getAllUsers
 );
 
 
