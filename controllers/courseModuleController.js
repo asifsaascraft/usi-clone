@@ -116,6 +116,37 @@ export const getCourseWeeksWithModules = async (req, res) => {
   }
 };
 
+// =======================
+// Get course module by ID (public)
+// =======================
+export const getCourseModuleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const module = await CourseModule.findById(id)
+      .populate("courseId")
+      .populate("weekCategoryId", "weekCategoryName");
+
+    if (!module) {
+      return res.status(404).json({
+        success: false,
+        message: "Course module not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: module,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch course module",
+      error: error.message,
+    });
+  }
+};
+
 
 // =======================
 // Create Course Module (admin)

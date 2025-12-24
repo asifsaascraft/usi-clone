@@ -4,6 +4,7 @@ import {
   getModulesByWeekCategory,
   getActiveModulesByWeekCategory,
   getCourseWeeksWithModules,
+  getCourseModuleById,
   createCourseModule,
   updateCourseModule,
   deleteCourseModule,
@@ -28,6 +29,8 @@ router.get(
   "/courses/:courseId/weeks-with-modules",
   getCourseWeeksWithModules
 );
+
+router.get("/modules/:id", getCourseModuleById);
 
 // Admin
 router.post(
