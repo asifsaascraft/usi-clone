@@ -166,12 +166,14 @@ export const getQuizResult = async (req, res) => {
 
       return {
         questionId: ans.questionId,
-        questionName: ans.questionName,
+        questionName: question?.questionName || null,
+        options: question?.options || [],
         selectedOption: ans.selectedOption,
         correctAnswer: question?.correctAnswer || null,
         isCorrect,
       };
     });
+
 
     const totalQuestions = quiz.quizQuestions.length;
     const scorePercentage = Math.round(
