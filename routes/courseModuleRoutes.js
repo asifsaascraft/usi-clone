@@ -2,7 +2,6 @@
 import express from "express";
 import {
   getModulesByWeekCategory,
-  getActiveModulesByWeekCategory,
   getCourseWeeksWithModules,
   getCourseModuleById,
   createCourseModule,
@@ -14,25 +13,34 @@ import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// Public
+/**
+ * ============================
+ * Public Routes
+ * ============================
+ */
+
+// Get modules by week category
 router.get(
   "/week-categories/:weekCategoryId/modules",
   getModulesByWeekCategory
 );
 
-router.get(
-  "/week-categories/:weekCategoryId/modules/active",
-  getActiveModulesByWeekCategory
-);
-
+// Get weeks with modules by course
 router.get(
   "/courses/:courseId/weeks-with-modules",
   getCourseWeeksWithModules
 );
 
+// Get module by ID
 router.get("/modules/:id", getCourseModuleById);
 
-// Admin
+/**
+ * ============================
+ * Admin Routes
+ * ============================
+ */
+
+// Create module
 router.post(
   "/admin/courses/:courseId/week-categories/:weekCategoryId/modules",
   protect,
@@ -40,6 +48,7 @@ router.post(
   createCourseModule
 );
 
+// Update module
 router.put(
   "/admin/modules/:id",
   protect,
@@ -47,6 +56,7 @@ router.put(
   updateCourseModule
 );
 
+// Delete module
 router.delete(
   "/admin/modules/:id",
   protect,

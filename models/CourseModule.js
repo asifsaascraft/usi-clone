@@ -12,29 +12,32 @@ const CourseModuleSchema = new mongoose.Schema(
       ref: "WeekCategory",
       required: true,
     },
-    courseModuleName: {
+    topicName: {
       type: String,
-      required: [true, "Module Name is required"],
+      required: [true, "Topic Name is required"],
     },
     contentType: {
       type: String,
+      enum: ["video", "image", "document"],
       required: [true, "Content Type is required"],
     },
-    contentLink: {
+    aboutTopic: {
+      type: String,
+    },
+    contentUrl: {
       type: String,
       required: [true, "Content link is required"],
     },
-    description: {
+    videoDuration: {
       type: String,
     },
-    duration: {
-      type: String,
+    additionalQuestions: {
+      type: [String],
+      default: [],
     },
-    status: {
-      type: String,
-      enum: ["Active", "Inactive"], //  restricts to these values
-      default: "Active",
-      required: [true, "Status is required"],
+    additionalResources: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true }
