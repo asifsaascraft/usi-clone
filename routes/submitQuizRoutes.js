@@ -3,6 +3,7 @@ import {
   submitQuiz,
   getAllSubmittedQuizzesByQuiz,
   getAllSubmittedQuizzesByWebinar,
+  getMySubmittedQuizzesByWebinar,
   getQuizResult,
 } from "../controllers/submitQuizController.js";
 
@@ -38,6 +39,16 @@ router.get(
   protect,
   authorizeRoles("admin"),
   getAllSubmittedQuizzesByWebinar
+);
+
+/**
+ * User views own submitted quizzes of a webinar
+ */
+router.get(
+  "/webinars/:webinarId/my-quizzes-submission",
+  protect,
+  authorizeRoles("user"),
+  getMySubmittedQuizzesByWebinar
 );
 
 /**

@@ -113,7 +113,7 @@ export const createCourse = async (req, res) => {
 
     const courseData = {
       ...req.body,
-      courseImage: req.file.location,
+      image: req.file.location,
     };
 
     const newCourse = await Course.create(courseData);
@@ -139,7 +139,7 @@ export const updateCourse = async (req, res) => {
     const { id } = req.params;
 
     const updatedData = { ...req.body };
-    if (req.file) updatedData.courseImage = req.file.location;
+    if (req.file) updatedData.image = req.file.location;
 
     const updatedCourse = await Course.findByIdAndUpdate(id, updatedData, {
       new: true,

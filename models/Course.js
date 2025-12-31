@@ -8,7 +8,7 @@ const CourseSchema = new mongoose.Schema(
       type: String,
       required: [true, "Name is required"],
     },
-    courseImage: {
+    image: {
       type: String, // store file path or URL
       required: [true, "Image is required"],
     },

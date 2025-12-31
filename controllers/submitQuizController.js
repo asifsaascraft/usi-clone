@@ -121,6 +121,48 @@ export const getAllSubmittedQuizzesByWebinar = async (req, res) => {
 };
 
 /**
+ * =====================================================
+ * GET Submitted Quizzes of a Webinar (Logged-in User)
+ * =====================================================
+ */
+export const getMySubmittedQuizzesByWebinar = async (req, res) => {
+  try {
+    const { webinarId } = req.params;
+    const userId = req.user.id; // from auth middleware
+
+    // Validate webinar
+    const webinar = await Webinar.findById(webinarId);
+    if (!webinar) {
+      return res.status(404).json({
+        success: false,
+        message: "Webinar not found",
+      });
+    }
+
+    // Fetch user's submissions for this webinar
+    const submissions = await SubmitQuiz.find({
+      webinarId,
+      userId,
+    })
+      .populate("quizId", "quizduration quizQuestions")
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      total: submissions.length,
+      data: submissions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch your submitted quizzes",
+      error: error.message,
+    });
+  }
+};
+
+
+/**
  * ==========================================
  * GET Quiz Result (User only)
  * ==========================================
