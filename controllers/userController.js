@@ -1,6 +1,8 @@
 import User from "../models/User.js";
 import { generateTokens } from "../utils/generateTokens.js";
 import jwt from "jsonwebtoken";
+import sendEmailWithTemplate from "../utils/sendEmail.js";
+
 // =======================
 // User Signup (Public)
 // =======================
@@ -54,6 +56,30 @@ export const registerUser = async (req, res) => {
         status: user.status,
       },
     });
+
+    const admin = await User.findOne({ role: "admin" });
+
+    try {
+      // Send email to Admin for approval
+      if (admin) {
+        await sendEmailWithTemplate({
+          to: admin.email,
+          name: admin.name,
+          templateKey: "2518b.554b0da719bc314.k1.03fd64b0-e86e-11f0-943e-cabf48e1bf81.19b828ef67b",
+          mergeInfo: {
+            name: user.name,
+            email: user.email,
+            mobile: user.mobile,
+            qualification: user.qualification,
+            affiliation: user.affiliation || "N/A",
+            country: user.country,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Admin email failed:", err.message);
+    }
+
   } catch (error) {
     console.error("Register user error:", error);
     res.status(500).json({ message: error.message });
