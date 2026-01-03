@@ -339,6 +339,29 @@ export const updateUserStatus = async (req, res) => {
     user.status = status;
     await user.save();
 
+    // =======================
+    // Send Email to User
+    // =======================
+    try {
+      await sendEmailWithTemplate({
+        to: user.email,
+        name: user.name,
+        templateKey: "2518b.554b0da719bc314.k1.59e7fe80-e896-11f0-943e-cabf48e1bf81.19b83974e68",
+        mergeInfo: {
+          name: user.name,
+          email: user.email,
+          mobile: user.mobile,
+          status: user.status,
+          status_message:
+            status === "Approved"
+              ? "Your account has been approved. You can now log in and access all services."
+              : "Your account status has been changed to pending. Please wait for further updates.",
+        },
+      });
+    } catch (emailErr) {
+      console.error("User status email failed:", emailErr.message);
+    }
+
     res.status(200).json({
       message: `User status updated to ${status}`,
       user,
