@@ -21,6 +21,7 @@ import courseRegistrationRoutes from "./routes/courseRegistrationRoutes.js";
 import weekCategoryRoutes from "./routes/weekCategoryRoutes.js";
 import courseModuleRoutes from "./routes/courseModuleRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import askedQuestionRoutes from "./routes/askedQuestionRoutes.js";
 import moduleCommentRoutes from "./routes/moduleCommentRoutes.js";
 import askedQAndARoutes from "./routes/askedQAndARoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
@@ -79,6 +80,8 @@ app.use("/api", courseRegistrationRoutes);
 app.use("/api", weekCategoryRoutes);
 app.use("/api", courseModuleRoutes);
 app.use("/api", commentRoutes);
+app.use("/api", askedQuestionRoutes);
+
 app.use("/api", moduleCommentRoutes);
 app.use("/api", askedQAndARoutes);
 app.use("/api", feedbackRoutes);
