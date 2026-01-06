@@ -169,16 +169,22 @@ export const getWebinarById = async (req, res) => {
 // =======================
 export const createWebinar = async (req, res) => {
   try {
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Webinar image is required" });
+    if (!req.files?.image?.[0]) {
+      return res.status(400).json({
+        success: false,
+        message: "Webinar image is required",
+      });
     }
 
     const webinarData = {
       ...req.body,
-      image: req.file.location,
+      image: req.files.image[0].location,
     };
+
+    if (req.files?.brochureUpload?.[0]) {
+      webinarData.brochureUpload =
+        req.files.brochureUpload[0].location;
+    }
 
     const newWebinar = await Webinar.create(webinarData);
 
@@ -189,11 +195,12 @@ export const createWebinar = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to create webinar",
-      error: error.message,
+      message: error.message,
     });
   }
 };
+
+
 
 // =======================
 // Update webinar (admin only)
@@ -201,19 +208,28 @@ export const createWebinar = async (req, res) => {
 export const updateWebinar = async (req, res) => {
   try {
     const { id } = req.params;
-
     const updatedData = { ...req.body };
-    if (req.file) updatedData.image = req.file.location;
 
-    const updatedWebinar = await Webinar.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    });
+    if (req.files?.image?.[0]) {
+      updatedData.image = req.files.image[0].location;
+    }
+
+    if (req.files?.brochureUpload?.[0]) {
+      updatedData.brochureUpload =
+        req.files.brochureUpload[0].location;
+    }
+
+    const updatedWebinar = await Webinar.findByIdAndUpdate(
+      id,
+      updatedData,
+      { new: true, runValidators: true }
+    );
 
     if (!updatedWebinar) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Webinar not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Webinar not found",
+      });
     }
 
     res.json({
@@ -223,11 +239,12 @@ export const updateWebinar = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to update webinar",
-      error: error.message,
+      message: error.message,
     });
   }
 };
+
+
 
 // =======================
 // Delete webinar (admin only)

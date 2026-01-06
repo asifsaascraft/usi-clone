@@ -14,7 +14,7 @@ import {
 } from "../controllers/webinarController.js";
 
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
-import { uploadWebinarImage } from "../middlewares/uploadMiddleware.js";
+import { uploadWebinarFiles } from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -44,7 +44,10 @@ router.post(
   "/admin/webinars",
   protect,
   authorizeRoles("admin"),
-  uploadWebinarImage.single("image"),
+  uploadWebinarFiles.fields([
+    { name: "image", maxCount: 1 },
+    { name: "brochureUpload", maxCount: 1 },
+  ]),
   createWebinar
 );
 
@@ -53,7 +56,10 @@ router.put(
   "/admin/webinars/:id",
   protect,
   authorizeRoles("admin"),
-  uploadWebinarImage.single("image"),
+  uploadWebinarFiles.fields([
+    { name: "image", maxCount: 1 },
+    { name: "brochureUpload", maxCount: 1 },
+  ]),
   updateWebinar
 );
 

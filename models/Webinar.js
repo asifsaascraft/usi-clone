@@ -60,6 +60,9 @@ const WebinarSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    brochureUpload: {
+      type: String, // store file path or URL (5 MB max)
+    }
     
     // status removed from schema because we calculate it dynamically
   },

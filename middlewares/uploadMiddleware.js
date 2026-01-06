@@ -3,45 +3,89 @@ import multer from "multer";
 import multerS3 from "multer-s3";
 import s3 from "../config/s3.js";
 
-export const createUploader = (folder, fileFilter = null) => {
-  const storage = multerS3({
-    s3,
-    bucket: process.env.AWS_BUCKET_NAME,
-
-    //  Make file accessible by URL
-    acl: "public-read",
-
-    //  Allow browser to open file inline
-    contentDisposition: "inline",
-
-    //  Automatically detect file type (PDF, image, etc.)
-    contentType: multerS3.AUTO_CONTENT_TYPE,
-
-    //  Unique file name pattern
-    key: (req, file, cb) => {
-      const fileName = `${folder}/${Date.now().toString()}-${file.originalname}`;
-      cb(null, fileName);
-    },
-  });
-
-  const uploaderOptions = { storage };
-  if (fileFilter) uploaderOptions.fileFilter = fileFilter;
-
-  return multer(uploaderOptions);
-};
-
-//  Allow only PDFs
-const pdfFileFilter = (req, file, cb) => {
-  if (file.mimetype === "application/pdf") {
-    cb(null, true);
+/**
+ * =========================
+ * File filter
+ * =========================
+ * - brochureUpload → PDF only
+ * - image → allow all (image handling unchanged)
+ */
+const webinarFileFilter = (req, file, cb) => {
+  if (file.fieldname === "brochureUpload") {
+    if (file.mimetype === "application/pdf") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PDF files are allowed for brochure upload"), false);
+    }
   } else {
-    cb(new Error("Only PDF files are allowed for booth uploads"), false);
+    cb(null, true);
   }
 };
 
-//  Export uploaders for different folders
-export const uploadWebinarImage = createUploader("webinars");
-export const uploadCourseImage = createUploader("courses");
-export const uploadUSIProfileImage = createUploader("usi-profile-pictures");
-export const uploadSpeakerProfileImage = createUploader("speaker-profile-pictures");
+/**
+ * =========================
+ * Webinar uploader
+ * =========================
+ */
+export const uploadWebinarFiles = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    acl: "public-read",
+    contentDisposition: "inline",
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      const folder =
+        file.fieldname === "brochureUpload"
+          ? "webinar-brochures"
+          : "webinars";
 
+      const fileName = `${folder}/${Date.now()}-${file.originalname}`;
+      cb(null, fileName);
+    },
+  }),
+
+  fileFilter: webinarFileFilter,
+
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+});
+
+/**
+ * =========================
+ * Existing exports (unchanged)
+ * =========================
+ */
+export const uploadCourseImage = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    acl: "public-read",
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) =>
+      cb(null, `courses/${Date.now()}-${file.originalname}`),
+  }),
+});
+
+export const uploadUSIProfileImage = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    acl: "public-read",
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) =>
+      cb(null, `usi-profile-pictures/${Date.now()}-${file.originalname}`),
+  }),
+});
+
+export const uploadSpeakerProfileImage = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    acl: "public-read",
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) =>
+      cb(null, `speaker-profile-pictures/${Date.now()}-${file.originalname}`),
+  }),
+});
