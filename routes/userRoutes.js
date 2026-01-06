@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import {
   registerUser,
   loginUser,
+  verifyLoginOtp,
   refreshAccessTokenUser,
   logoutUser,
   getUserProfile,
@@ -30,6 +31,9 @@ router.post("/register", registerUser);
 
 // Login
 router.post("/login", loginUser);
+
+// Verify OTP Login
+router.post("/verify-otp", verifyLoginOtp);
 
 // Refresh access token (GET, using cookies)
 router.get("/refresh-token", refreshAccessTokenUser);

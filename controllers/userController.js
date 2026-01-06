@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import { generateTokens } from "../utils/generateTokens.js";
 import jwt from "jsonwebtoken";
 import sendEmailWithTemplate from "../utils/sendEmail.js";
+import crypto from "crypto";
 
 // =======================
 // User Signup (Public)
@@ -147,10 +148,76 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // Generate tokens
+    //  Generate 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.loginOtp = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    user.loginOtpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+    await user.save({ validateBeforeSave: false });
+
+    //  Send OTP Email
+    await sendEmailWithTemplate({
+      to: user.email,
+      name: user.name,
+      templateKey: "2518b.554b0da719bc314.k1.6e2d6570-eae3-11f0-a3cd-525400c92439.19b92abe547",
+      mergeInfo: {
+        name: user.name,
+        otp,
+      },
+    });
+
+    //  Send OTP SMS (implement later)
+    // await sendOtpSMS(user.mobile, otp);
+
+    return res.json({
+      message: "OTP sent to your email and mobile",
+      userId: user._id,
+    });
+  } catch (error) {
+    console.error("Login OTP error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+// =======================
+// Verify OTP
+// =======================
+export const verifyLoginOtp = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+
+    if (!userId || !otp) {
+      return res.status(400).json({ message: "OTP required" });
+    }
+
+    const hashedOtp = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    const user = await User.findOne({
+      _id: userId,
+      loginOtp: hashedOtp,
+      loginOtpExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    // Clear OTP
+    user.loginOtp = null;
+    user.loginOtpExpires = null;
+    await user.save();
+
+    //  Generate tokens
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
 
-    // Save refresh token in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -158,25 +225,20 @@ export const loginUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Success
-    return res.json({
-      message: "User login successful",
+    res.json({
+      message: "Login successful",
       accessToken,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         mobile: user.mobile,
-        membershipNumber: user.membershipNumber,
         role: user.role,
-        status: user.status,
       },
     });
   } catch (error) {
-    console.error("Login user error:", error);
-    return res.status(500).json({
-      message: error.message,
-    });
+    console.error("Verify OTP error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
