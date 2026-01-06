@@ -12,6 +12,7 @@ import userRoutes from "./routes/userRoutes.js";
 
 import webinarRoutes from "./routes/webinarRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
+import conferenceRoutes from "./routes/conferenceRoutes.js";
 import speakerRoutes from "./routes/speakerRoutes.js";
 import assignSpeakerRoutes from "./routes/assignSpeakerRoutes.js";
 import meetingRoutes from "./routes/meetingRoutes.js";
@@ -70,6 +71,7 @@ app.use("/api/users", userRoutes);
 
 app.use("/api", webinarRoutes);
 app.use("/api", courseRoutes);
+app.use("/api", conferenceRoutes);
 app.use("/api", speakerRoutes);
 app.use("/api", assignSpeakerRoutes);
 app.use("/api", meetingRoutes);
@@ -80,7 +82,6 @@ app.use("/api", weekCategoryRoutes);
 app.use("/api", courseModuleRoutes);
 app.use("/api", commentRoutes);
 app.use("/api", askedQuestionRoutes);
-
 app.use("/api", moduleCommentRoutes);
 app.use("/api", askedQAndARoutes);
 app.use("/api", feedbackRoutes);

@@ -26,7 +26,7 @@ router.post(
   "/admin/courses",
   protect,
   authorizeRoles("admin"),
-  uploadCourseImage.single("courseImage"),
+  uploadCourseImage.single("image"),
   createCourse
 );
 
@@ -34,7 +34,7 @@ router.put(
   "/admin/courses/:id",
   protect,
   authorizeRoles("admin"),
-  uploadCourseImage.single("courseImage"),
+  uploadCourseImage.single("image"),
   updateCourse
 );
 
