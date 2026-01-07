@@ -54,7 +54,7 @@ const CourseSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    
+
     // status removed from schema because we calculate it dynamically
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
@@ -83,8 +83,5 @@ CourseSchema.pre("findOneAndUpdate", function (next) {
   next();
 });
 
-
 // Avoid model overwrite during hot-reload
-export default mongoose.models.Course ||
-  mongoose.model("Course", CourseSchema);
-
+export default mongoose.models.Course || mongoose.model("Course", CourseSchema);
