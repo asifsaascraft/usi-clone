@@ -188,6 +188,8 @@ export const getAllWebinarRegistrations = async (req, res) => {
         startTime: webinar.startTime,
         endDate: webinar.endDate,
         endTime: webinar.endTime,
+        attendedMailSent: webinar.attendedMailSent,
+        notAttendedMailSent: webinar.notAttendedMailSent,
       },
       total: registrations.length,
       attendedCount: registrations.filter(r => r.attended).length,
@@ -233,6 +235,8 @@ export const getAttendedUsers = async (req, res) => {
       webinar: {
         id: webinar._id,
         name: webinar.name,
+        attendedMailSent: webinar.attendedMailSent,
+        notAttendedMailSent: webinar.notAttendedMailSent,
       },
       count: attendedUsers.length,
       data: attendedUsers,
@@ -277,6 +281,8 @@ export const getNotAttendedUsers = async (req, res) => {
       webinar: {
         id: webinar._id,
         name: webinar.name,
+        attendedMailSent: webinar.attendedMailSent,
+        notAttendedMailSent: webinar.notAttendedMailSent,
       },
       count: notAttendedUsers.length,
       data: notAttendedUsers,

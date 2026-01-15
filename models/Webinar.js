@@ -62,8 +62,16 @@ const WebinarSchema = new mongoose.Schema(
     },
     brochureUpload: {
       type: String, // store file path or URL (5 MB max)
-    }
-    
+    },
+    //Email related fields
+    attendedMailSent: {
+      type: Boolean,
+      default: false,
+    },
+    notAttendedMailSent: {
+      type: Boolean,
+      default: false,
+    },
     // status removed from schema because we calculate it dynamically
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
