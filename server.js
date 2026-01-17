@@ -38,7 +38,7 @@ import sendFeedbackRoutes from "./routes/sendFeedbackRoutes.js";
 import submitPublicFeedbackRoutes from "./routes/submitPublicFeedbackRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import submitQuizRoutes from "./routes/submitQuizRoutes.js";
-
+import speakerAnalyticsRoutes from "./routes/speakerAnalyticsRoutes.js";
 
 const app = express();
 
@@ -106,7 +106,7 @@ app.use("/api", sendFeedbackRoutes);
 app.use("/api", submitPublicFeedbackRoutes);
 app.use("/api", quizRoutes);
 app.use("/api", submitQuizRoutes);
-
+app.use("/api", speakerAnalyticsRoutes);
 
 
 // =======================

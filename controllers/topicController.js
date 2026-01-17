@@ -2,6 +2,7 @@
 import Topic from "../models/Topic.js";
 import Conference from "../models/Conference.js";
 import Session from "../models/Session.js";
+import mongoose from "mongoose";
 
 // =======================
 // Create Topic (admin)
@@ -343,3 +344,4 @@ export const getTopicById = async (req, res) => {
     });
   }
 };
+
