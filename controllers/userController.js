@@ -218,14 +218,34 @@ export const verifyLoginOtp = async (req, res) => {
     await user.save();
 
     //  Generate tokens
-    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+    // const { accessToken, refreshToken } = generateTokens(user._id, user.role);
 
-    res.cookie("refreshToken", refreshToken, {
+    // res.cookie("refreshToken", refreshToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "none",
+    //   maxAge: 7 * 24 * 60 * 60 * 1000,
+    // });
+
+    const { accessToken, refreshToken } = generateTokens(user._id, user.role)
+
+    // 🔐 access token (middleware)
+    res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 15 * 60 * 1000,
+    })
+
+    // 🔁 refresh token
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    })
 
     res.json({
       message: "Login successful",
@@ -247,39 +267,66 @@ export const verifyLoginOtp = async (req, res) => {
 // =======================
 // Refresh Access Token
 // =======================
+// export const refreshAccessTokenUser = async (req, res) => {
+//   try {
+//     const token = req.cookies.refreshToken;
+//     if (!token) return res.status(401).json({ message: "No refresh token" });
+
+//     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+//     const user = await User.findById(decoded.id);
+//     if (!user) return res.status(401).json({ message: "User not found" });
+
+//     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+
+//     res.cookie("refreshToken", refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "none",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     res.json({ accessToken });
+//   } catch (error) {
+//     console.error("Refresh token error:", error);
+//     res.status(401).json({ message: "Invalid refresh token" });
+//   }
+// };
 export const refreshAccessTokenUser = async (req, res) => {
   try {
-    const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ message: "No refresh token" });
+    const token = req.cookies.refreshToken
+    if (!token) return res.status(401).json({ message: 'No refresh token' })
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
 
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(401).json({ message: "User not found" });
+    const user = await User.findById(decoded.id)
+    if (!user) return res.status(401).json({ message: 'User not found' })
 
-    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+    const { accessToken } = generateTokens(user._id, user.role)
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    })
 
-    res.json({ accessToken });
-  } catch (error) {
-    console.error("Refresh token error:", error);
-    res.status(401).json({ message: "Invalid refresh token" });
+    res.json({ success: true })
+  } catch {
+    res.status(401).json({ message: 'Invalid refresh token' })
   }
-};
+}
+
 
 // =======================
 // Logout User
 // =======================
 export const logoutUser = (req, res) => {
-  res.clearCookie("refreshToken");
-  res.json({ message: "Logged out successfully" });
-};
+  res.clearCookie('accessToken')
+  res.clearCookie('refreshToken')
+  res.json({ message: 'Logged out successfully' })
+}
 
 // =======================
 // Get Profile
