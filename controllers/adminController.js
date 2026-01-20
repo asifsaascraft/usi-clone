@@ -2,7 +2,74 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import { generateTokens } from "../utils/generateTokens.js";
 import sendEmailWithTemplate from "../utils/sendEmail.js";
-import jwt from "jsonwebtoken"; // fixed import for refreshAccessToken
+import jwt from "jsonwebtoken";
+
+// =======================
+// Get Current Admin Session
+// =======================
+export const getAdminSession  = async (req, res) => {
+  try {
+    // Get token from cookies
+    const token = req.cookies.accessToken;
+    if (!token) {
+      return res.status(401).json({
+        authenticated: false,
+        message: "No access token"
+      });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        authenticated: false,
+        message: "Invalid or expired token"
+      });
+    }
+
+    // Check token type
+    if (decoded.type !== 'access') {
+      return res.status(401).json({
+        authenticated: false,
+        message: "Invalid token type"
+      });
+    }
+
+    // Find admin
+    const admin = await User.findById(decoded.id);
+    if (!admin || admin.role !== 'admin') {
+      return res.status(401).json({
+        authenticated: false,
+        message: "Admin not found"
+      });
+    }
+
+    // Return admin info
+    res.json({
+      authenticated: true,
+      user: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        mobile: admin.mobile,
+        role: admin.role,
+        prefix: admin.prefix,
+        qualification: admin.qualification,
+        affiliation: admin.affiliation,
+        country: admin.country,
+        status: admin.status,
+      }
+    });
+  } catch (error) {
+    console.error("Get admin profile error:", error);
+    res.status(500).json({
+      authenticated: false,
+      message: error.message
+    });
+  }
+};
 
 // =======================
 // Admin Signup (Postman only)
@@ -78,6 +145,12 @@ export const loginAdmin = async (req, res) => {
         name: admin.name,
         email: admin.email,
         role: admin.role,
+        mobile: admin.mobile,
+        prefix: admin.prefix,
+        qualification: admin.qualification,
+        affiliation: admin.affiliation,
+        country: admin.country,
+        status: admin.status,
       },
     });
   } catch (error) {
@@ -195,9 +268,6 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Failed to send reset email" });
   }
 };
-
-
-
 
 // =======================
 // Reset Password

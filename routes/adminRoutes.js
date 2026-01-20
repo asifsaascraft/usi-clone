@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import {
+  getAdminSession,
   registerAdmin,
   loginAdmin,
   refreshAccessToken,
@@ -18,6 +19,14 @@ router.use(cookieParser());
 // =======================
 // Admin Routes
 // =======================
+
+//  GET CURRENT ADMIN SESSION (Protected)
+router.get(
+  "/me",
+  protect,                // verifies access token
+  authorizeRoles("admin"),
+  getAdminSession 
+);
 
 // Signup - only via Postman
 router.post("/register", registerAdmin);
