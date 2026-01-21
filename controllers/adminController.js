@@ -471,79 +471,80 @@ export const logoutAdmin = (req, res) => {
   res.json({ message: 'Logged out successfully' })
 }
 
-/* =========================
-   FORGOT PASSWORD
-========================= */
+// =======================
+// Forgot Password
+// =======================
 export const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body
+    const { email } = req.body;
 
-    const admin = await User.findOne({ email, role: 'admin' })
-    if (!admin) {
-      return res.status(404).json({ message: 'Admin not found' })
-    }
+    // Find admin
+    const admin = await User.findOne({ email, role: "admin" });
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
 
-    const token = crypto.randomBytes(32).toString('hex')
-    const resetToken = crypto
-      .createHash('sha256')
-      .update(token)
-      .digest('hex')
+    // Generate reset token
+    const token = crypto.randomBytes(32).toString("hex");
+    const resetToken = crypto.createHash("sha256").update(token.trim()).digest("hex");
 
-    admin.passwordResetToken = resetToken
-    admin.passwordResetExpires = Date.now() + 24 * 60 * 60 * 1000
-    await admin.save({ validateBeforeSave: false })
+    admin.passwordResetToken = resetToken;
+    admin.passwordResetExpires = Date.now() + 24 * 60 * 60 * 1000;
+    await admin.save({ validateBeforeSave: false });
 
-    const resetUrl = `${process.env.ADMIN_FRONTEND_URL}/reset-password/${token}`
+    const frontendUrl = process.env.ADMIN_FRONTEND_URL;
+    const resetUrl = `${frontendUrl}/reset-password/${token}`;
 
+    // Send email via ZeptoMail template
     await sendEmailWithTemplate({
       to: admin.email,
       name: admin.name,
-      templateKey: process.env.ZEPTOMAIL_TEMPLATE_KEY,
+      templateKey: "2518b.554b0da719bc314.k1.6f29f192-dd74-11f0-91a1-621740bce2a6.19b3aa21729",
       mergeInfo: {
         name: admin.name,
         password_reset_link: resetUrl,
       },
-    })
+    });
 
-    res.json({ message: 'Password reset link sent' })
+    res.json({ message: "Password reset link sent to your email address" });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to send reset email' })
+    console.error("Forgot password error:", error?.response?.data || error.message || error);
+    res.status(500).json({ message: "Failed to send reset email" });
   }
-}
+};
 
-/* =========================
-   RESET PASSWORD
-========================= */
+// =======================
+// Reset Password
+// =======================
 export const resetPassword = async (req, res) => {
   try {
-    const token = req.params.token?.trim()
-    const { password } = req.body
+    let { token } = req.params; // get token from URL
+    const { password } = req.body;
 
-    if (!token) {
-      return res.status(400).json({ message: 'Token is required' })
-    }
+    if (!token) return res.status(400).json({ message: "Token is required" });
 
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(token)
-      .digest('hex')
+    // Trim token to remove extra spaces/newlines
+    token = token.trim();
+
+    // Hash token to match DB
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const admin = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
-    })
+    });
 
     if (!admin) {
-      return res.status(400).json({ message: 'Invalid or expired token' })
+      return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    admin.password = password
-    admin.passwordResetToken = null
-    admin.passwordResetExpires = null
-    await admin.save()
+    // Update password
+    admin.password = password; // will be hashed in pre-save hook
+    admin.passwordResetToken = null;
+    admin.passwordResetExpires = null;
+    await admin.save();
 
-    res.json({ message: 'Password reset successful' })
+    res.json({ message: "Password reset successful" });
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: error.message });
   }
-}
+};
