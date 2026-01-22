@@ -5,7 +5,7 @@ export const getCookieOptions = () => {
   return {
     httpOnly: true,
     secure: isProd,                 //  only true in production
-    sameSite: isProd ? 'none' : 'lax',
+    sameSite: isProd ? 'strict' : 'lax',
     path: '/',
     domain: isProd ? process.env.COOKIE_DOMAIN : undefined,
   }
