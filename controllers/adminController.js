@@ -3,19 +3,19 @@ import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
 import { generateTokens } from '../utils/generateTokens.js'
 import sendEmailWithTemplate from '../utils/sendEmail.js'
-import { getCookieOptions } from '../utils/cookieOptions.js'
+
 
 /* =========================
    GET CURRENT ADMIN SESSION
 ========================= */
 export const getAdminSession = async (req, res) => {
   try {
-    res.setHeader('Cache-Control', 'no-store')
-
-    const token = req.cookies.accessToken
-    if (!token) {
+    const authHeader = req.headers.authorization
+    if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ authenticated: false })
     }
+
+    const token = authHeader.replace('Bearer ', '')
 
     let decoded
     try {
@@ -32,7 +32,7 @@ export const getAdminSession = async (req, res) => {
       '-password -passwordResetToken -passwordResetExpires'
     )
 
-    if (!admin || admin.role !== 'admin') {
+    if (!admin) {
       return res.status(401).json({ authenticated: false })
     }
 
@@ -44,6 +44,7 @@ export const getAdminSession = async (req, res) => {
     res.status(500).json({ authenticated: false })
   }
 }
+
 
 // =======================
 // Admin Signup (Postman only)
@@ -78,8 +79,9 @@ export const registerAdmin = async (req, res) => {
 };
 
 
+
 /* =========================
-   ADMIN LOGIN
+   ADMIN LOGIN (TOKEN ONLY)
 ========================= */
 export const loginAdmin = async (req, res) => {
   try {
@@ -87,12 +89,12 @@ export const loginAdmin = async (req, res) => {
 
     const admin = await User.findOne({ email, role: 'admin' })
     if (!admin) {
-      return res.status(400).json({ message: 'Email does not exist' })
+      return res.status(400).json({ message: 'Invalid credentials' })
     }
 
     const isMatch = await admin.matchPassword(password)
     if (!isMatch) {
-      return res.status(400).json({ message: 'Wrong password' })
+      return res.status(400).json({ message: 'Invalid credentials' })
     }
 
     const { accessToken, refreshToken } = generateTokens(
@@ -100,18 +102,10 @@ export const loginAdmin = async (req, res) => {
       admin.role
     )
 
-    res.cookie('accessToken', accessToken, {
-      ...getCookieOptions(),
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    })
-
-    res.cookie('refreshToken', refreshToken, {
-      ...getCookieOptions(),
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    })
-
     res.json({
-      message: 'Admin login successful',
+      message: 'Login successful',
+      accessToken,
+      refreshToken,
       user: {
         id: admin._id,
         name: admin.name,
@@ -129,7 +123,10 @@ export const loginAdmin = async (req, res) => {
 ========================= */
 export const refreshAccessToken = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refreshToken
+    const refreshToken =
+      req.body.refreshToken ||
+      req.headers.authorization?.replace('Bearer ', '')
+
     if (!refreshToken) {
       return res.status(401).json({ message: 'NO_REFRESH_TOKEN' })
     }
@@ -144,31 +141,22 @@ export const refreshAccessToken = async (req, res) => {
     }
 
     const admin = await User.findById(decoded.id)
-    if (!admin || admin.role !== 'admin') {
+    if (!admin) {
       return res.status(401).json({ message: 'INVALID_USER' })
     }
 
     const { accessToken } = generateTokens(admin._id, admin.role)
 
-    res.cookie('accessToken', accessToken, {
-      ...getCookieOptions(),
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    })
-
-    res.json({ success: true })
-  } catch (err) {
-    res.clearCookie('accessToken', getCookieOptions())
+    res.json({ accessToken })
+  } catch (error) {
     res.status(401).json({ message: 'REFRESH_TOKEN_EXPIRED' })
   }
 }
 
 /* =========================
-   LOGOUT
+   LOGOUT (OPTIONAL)
 ========================= */
 export const logoutAdmin = (req, res) => {
-  res.clearCookie('accessToken', getCookieOptions())
-  res.clearCookie('refreshToken', getCookieOptions())
-
   res.json({ message: 'Logged out successfully' })
 }
 
