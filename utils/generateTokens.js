@@ -5,13 +5,13 @@ export const generateTokens = (id, role) => {
   const accessToken = jwt.sign(
     { id, role, type: 'access' },
     process.env.JWT_SECRET,
-    { expiresIn: '2m' }
+    { expiresIn: '7d' }
   )
 
   const refreshToken = jwt.sign(
     { id, role, type: 'refresh' },
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: '10m' }
+    { expiresIn: '30d' }
   )
 
   return { accessToken, refreshToken }

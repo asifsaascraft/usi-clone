@@ -44,6 +44,12 @@ const ConferenceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    status: {
+      type: String,
+      enum: ["Active", "Inactive"], //  restricts to these values
+      default: "Inactive",
+      required: [true, "Status is required"],
+    },
     // status removed from schema because we calculate it dynamically
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }

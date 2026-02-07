@@ -22,6 +22,28 @@ export const getConferences = async (req, res) => {
 };
 
 // =======================
+// Get active conferences (public)
+// =======================
+export const getActiveConferences = async (req, res) => {
+  try {
+    const conferences = await Conference.find({ status: "Active" }).sort({
+      createdAt: -1,
+    });
+
+    res.json({
+      success: true,
+      data: conferences.map((c) => c.toObject({ virtuals: true })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch active conferences",
+      error: error.message,
+    });
+  }
+};
+
+// =======================
 // Get single conference by ID (public)
 // =======================
 export const getConferenceById = async (req, res) => {

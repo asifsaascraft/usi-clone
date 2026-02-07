@@ -2,6 +2,7 @@
 import express from "express";
 import {
   getConferences,
+  getActiveConferences,
   getConferenceById,
   createConference,
   updateConference,
@@ -16,6 +17,7 @@ const router = express.Router();
 
 // Public
 router.get("/conferences", getConferences);
+router.get("/conferences/active", getActiveConferences);
 router.get("/conferences/:id", getConferenceById);
 
 // Admin
