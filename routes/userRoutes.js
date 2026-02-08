@@ -13,7 +13,7 @@ import {
   deleteUser,
 } from "../controllers/userController.js";
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
-import { uploadUSIProfileImage } from "../middlewares/uploadMiddleware.js";
+import { uploadUserDocument , uploadUSIProfileImage } from "../middlewares/uploadMiddleware.js";
 import { getMyAllRegistrations } from "../controllers/userRegistrationController.js";
 
 
@@ -33,7 +33,26 @@ router.get(
 );
 
 // Public signup
-router.post("/register", registerUser);
+router.post("/register", (req, res, next) => {
+  uploadUserDocument.single("uploadDocument")(req, res, function (err) {
+    if (err) {
+      // multer size error
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          message: "File size must be less than 2MB",
+        });
+      }
+
+      // file type error
+      return res.status(400).json({
+        message: err.message || "File upload failed",
+      });
+    }
+
+    next();
+  });
+}, registerUser);
+
 
 // Login
 router.post("/login", loginUser);

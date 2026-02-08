@@ -2,6 +2,7 @@ import express from "express";
 import {
   registerToCourse,
   getUserCourseRegistrations,
+  getRegistrationsByCourse,
 } from "../controllers/courseRegistrationController.js";
 
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
@@ -22,6 +23,14 @@ router.get(
   protect,
   authorizeRoles("user"),
   getUserCourseRegistrations
+);
+
+// Admin → all registrations in a course
+router.get(
+  "/admin/course/:courseId/registrations",
+  protect,
+  authorizeRoles("admin"),
+  getRegistrationsByCourse
 );
 
 export default router;

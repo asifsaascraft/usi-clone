@@ -154,3 +154,47 @@ export const getUserCourseRegistrations = async (req, res) => {
     });
   }
 };
+
+// ==============================
+// Admin → Get all registrations of a course
+// ==============================
+export const getRegistrationsByCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    // Validate course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid courseId",
+      });
+    }
+
+    const registrations = await CourseRegistration.find({ courseId })
+      .populate("userId", "name email mobile membershipNumber")
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      course: {
+        id: course._id,
+        courseName: course.courseName,
+        startDate: course.startDate,
+        endDate: course.endDate,
+      },
+      total: registrations.length,
+      data: registrations.map((r) => ({
+        registrationId: r._id,
+        user: r.userId,
+        registeredOn: r.createdAt,
+      })),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch registrations",
+      error: error.message,
+    });
+  }
+};

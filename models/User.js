@@ -41,6 +41,11 @@ const UserSchema = new mongoose.Schema(
       enum: ["admin", "user"],
       default: "user",
     },
+    uploadDocument: {
+      type: String,
+      required: [true, "Document is required"],
+      trim: true,
+    },
     status: {
       type: String,
       enum: ["Pending", "Approved"],

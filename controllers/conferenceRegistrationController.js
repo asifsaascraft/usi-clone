@@ -154,3 +154,51 @@ export const getUserConferenceRegistrations = async (req, res) => {
     });
   }
 };
+
+// =====================================
+// Admin - Get all registrations of a conference
+// =====================================
+export const getConferenceRegistrationsForAdmin = async (req, res) => {
+  try {
+    const { conferenceId } = req.params;
+
+    // Validate conference
+    const conference = await Conference.findById(conferenceId);
+    if (!conference) {
+      return res.status(404).json({
+        success: false,
+        message: "Conference not found",
+      });
+    }
+
+    const registrations = await ConferenceRegistration.find({ conferenceId })
+      .populate("userId", "name email mobile membershipNumber")
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      conference: {
+        id: conference._id,
+        name: conference.name,
+        startDate: conference.startDate,
+        endDate: conference.endDate,
+        venueName: conference.venueName,
+      },
+      total: registrations.length,
+      data: registrations.map((r) => ({
+        registrationId: r._id,
+        registeredOn: r.createdAt,
+        user: r.userId,
+        email: r.email,
+        mobile: r.mobile,
+        membershipNumber: r.membershipNumber,
+      })),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch registrations",
+      error: error.message,
+    });
+  }
+};

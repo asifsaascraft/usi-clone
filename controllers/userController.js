@@ -51,8 +51,24 @@ export const getUserSession = async (req, res) => {
 // =======================
 export const registerUser = async (req, res) => {
   try {
-    const { prefix, name, email, mobile, qualification, affiliation, country } =
-      req.body;
+    const {
+      prefix,
+      name,
+      email,
+      mobile,
+      qualification,
+      affiliation,
+      country,
+    } = req.body;
+
+    // ======================
+    // Document Required Check
+    // ======================
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Document is required",
+      });
+    }
 
     // Check if email already exists
     const existingUser = await User.findOne({ email });
@@ -60,7 +76,7 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    //  Check if mobile already exists
+    // Check if mobile already exists
     const existingMobile = await User.findOne({ mobile });
     if (existingMobile) {
       return res.status(400).json({
@@ -69,7 +85,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Create user (role = 'user')
+    // Create user
     const user = await User.create({
       prefix,
       name,
@@ -78,6 +94,7 @@ export const registerUser = async (req, res) => {
       qualification,
       affiliation,
       country,
+      uploadDocument: req.file.location, 
       role: "user",
       status: "Pending",
     });
@@ -96,7 +113,6 @@ export const registerUser = async (req, res) => {
     const admin = await User.findOne({ role: "admin" });
 
     try {
-      // Send email to Admin for approval
       if (admin) {
         await sendEmailWithTemplate({
           to: admin.email,
@@ -121,6 +137,7 @@ export const registerUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // =======================
 // User Login

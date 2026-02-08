@@ -4,6 +4,7 @@ import express from "express";
 import {
   registerToConference,
   getUserConferenceRegistrations,
+  getConferenceRegistrationsForAdmin,
 } from "../controllers/conferenceRegistrationController.js";
 
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
@@ -25,5 +26,14 @@ router.get(
   authorizeRoles("user"),
   getUserConferenceRegistrations
 );
+
+// Admin - get all registrations of a specific conference
+router.get(
+  "/admin/conference/:conferenceId/registrations",
+  protect,
+  authorizeRoles("admin"),
+  getConferenceRegistrationsForAdmin
+);
+
 
 export default router;
