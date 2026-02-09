@@ -208,3 +208,105 @@ export const sendEmailToSingleNotAttendedUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// ==========================================
+// ADMIN: Send JOIN email to ALL registered users
+// ==========================================
+export const sendJoinEmailToAllUsers = async (req, res) => {
+  try {
+    const { webinarId } = req.params;
+
+    const loginUrl = "https://elearning.usi.org.in/login";
+
+    const webinar = await Webinar.findById(webinarId);
+    if (!webinar) {
+      return res.status(404).json({ message: "Webinar not found" });
+    }
+
+    const registrations = await WebinarRegistration.find({
+      webinarId,
+    }).populate("userId");
+
+    if (!registrations.length) {
+      return res.status(400).json({
+        message: "No users registered for this webinar",
+      });
+    }
+
+    for (const reg of registrations) {
+      await sendEmailWithTemplate({
+        to: reg.userId.email,
+        name: reg.userId.name,
+        templateKey:
+          "2518b.554b0da719bc314.k1.13d78aa0-0588-11f1-8892-8e9a6c33ddc2.19c4147b04a", 
+        mergeInfo: {
+          name: reg.userId.name,
+          webinar_name: webinar.name,
+          webinar_date: webinar.startDate,
+          webinar_time: webinar.startTime,
+          login_url: loginUrl,
+        },
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Join email sent to all registered users",
+      count: registrations.length,
+    });
+  } catch (error) {
+    console.error("Send join email error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// ==========================================
+// ADMIN: Send JOIN email to ONE user
+// ==========================================
+export const sendJoinEmailToSingleUser = async (req, res) => {
+  try {
+    const { webinarId, userId } = req.params;
+
+    const loginUrl = "https://elearning.usi.org.in/login";
+
+    const webinar = await Webinar.findById(webinarId);
+    if (!webinar) {
+      return res.status(404).json({ message: "Webinar not found" });
+    }
+
+    const registration = await WebinarRegistration.findOne({
+      webinarId,
+      userId,
+    }).populate("userId");
+
+    if (!registration) {
+      return res.status(404).json({
+        message: "User not registered for this webinar",
+      });
+    }
+
+    await sendEmailWithTemplate({
+      to: registration.userId.email,
+      name: registration.userId.name,
+      templateKey:
+        "2518b.554b0da719bc314.k1.13d78aa0-0588-11f1-8892-8e9a6c33ddc2.19c4147b04a", 
+      mergeInfo: {
+        name: registration.userId.name,
+        webinar_name: webinar.name,
+        webinar_date: webinar.startDate,
+        webinar_time: webinar.startTime,
+        login_url: loginUrl,
+      },
+    });
+
+    return res.json({
+      success: true,
+      message: "Join email sent successfully",
+    });
+  } catch (error) {
+    console.error("Send single join email error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};

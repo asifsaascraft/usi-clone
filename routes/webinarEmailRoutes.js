@@ -4,6 +4,8 @@ import {
   sendEmailToNotAttendedUsers,
   sendEmailToSingleAttendedUser,
   sendEmailToSingleNotAttendedUser,
+  sendJoinEmailToAllUsers,
+  sendJoinEmailToSingleUser,
 } from "../controllers/webinarEmailController.js";
 
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
@@ -37,5 +39,16 @@ router.post(
   authorizeRoles("admin"),
   sendEmailToSingleNotAttendedUser
 );
+
+router.post(
+  "/admin/webinar/:webinarId/send-join-webinar",
+  sendJoinEmailToAllUsers
+);
+
+router.post(
+  "/admin/webinar/:webinarId/send-join-webinar/:userId",
+  sendJoinEmailToSingleUser
+);
+
 
 export default router;
