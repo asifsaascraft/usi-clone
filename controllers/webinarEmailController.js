@@ -1,6 +1,8 @@
 import Webinar from "../models/Webinar.js";
 import WebinarRegistration from "../models/WebinarRegistration.js";
 import sendEmailWithTemplate from "../utils/sendEmail.js";
+import moment from "moment-timezone";
+
 
 // ==========================================
 // ADMIN: Send email to attended users
@@ -224,6 +226,18 @@ export const sendJoinEmailToAllUsers = async (req, res) => {
       return res.status(404).json({ message: "Webinar not found" });
     }
 
+    //  CHECK → webinar endDate passed or not
+    const today = moment().startOf("day");
+    const webinarEndDate = moment(webinar.endDate, "DD/MM/YYYY").endOf("day");
+
+    if (today.isAfter(webinarEndDate)) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot send join email. Webinar already ended.",
+      });
+    }
+
+
     const registrations = await WebinarRegistration.find({
       webinarId,
     }).populate("userId");
@@ -239,7 +253,7 @@ export const sendJoinEmailToAllUsers = async (req, res) => {
         to: reg.userId.email,
         name: reg.userId.name,
         templateKey:
-          "2518b.554b0da719bc314.k1.13d78aa0-0588-11f1-8892-8e9a6c33ddc2.19c4147b04a", 
+          "2518b.554b0da719bc314.k1.13d78aa0-0588-11f1-8892-8e9a6c33ddc2.19c4147b04a",
         mergeInfo: {
           name: reg.userId.name,
           webinar_name: webinar.name,
@@ -291,7 +305,7 @@ export const sendJoinEmailToSingleUser = async (req, res) => {
       to: registration.userId.email,
       name: registration.userId.name,
       templateKey:
-        "2518b.554b0da719bc314.k1.13d78aa0-0588-11f1-8892-8e9a6c33ddc2.19c4147b04a", 
+        "2518b.554b0da719bc314.k1.13d78aa0-0588-11f1-8892-8e9a6c33ddc2.19c4147b04a",
       mergeInfo: {
         name: registration.userId.name,
         webinar_name: webinar.name,
