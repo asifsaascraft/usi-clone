@@ -54,8 +54,11 @@ export const getFeedbackByWebinar = async (req, res) => {
   try {
     const { webinarId } = req.params;
 
-    const feedback = await Feedback.findOne({ webinarId });
-
+    const feedback = await Feedback.findOne({ webinarId })
+          .populate(
+            "webinarId",
+            "name webinarType startDate endDate startTime endTime timeZone"
+          );
     res.json({
       success: true,
       data: feedback || null,
