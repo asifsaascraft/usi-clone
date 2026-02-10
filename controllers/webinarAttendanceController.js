@@ -34,7 +34,7 @@ export const captureWebinarAttendance = async (req, res) => {
       `${webinar.startDate} ${webinar.startTime}`,
       "DD/MM/YYYY hh:mm A",
       tz
-    ).subtract(5, "minutes");
+    ).subtract(15, "minutes");
 
     const end = moment.tz(
       `${webinar.endDate} ${webinar.endTime}`,

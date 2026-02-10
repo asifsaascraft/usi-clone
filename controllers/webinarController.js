@@ -45,29 +45,29 @@ export const getActiveWebinars = async (req, res) => {
 };
 
 // =======================
-// Get Upcoming Webinars (All Types, Active only) - Public
+// Get Upcoming + Live Webinars (Active only) - Public
 // =======================
 export const getUpcomingWebinars = async (req, res) => {
   try {
-    // 1️ Fetch only ACTIVE webinars
     const webinars = await Webinar.find({ status: "Active" }).sort({
       createdAt: -1,
     });
 
-    // 2️ Convert + filter by virtual field
-    const upcomingWebinars = webinars
+    const result = webinars
       .map((w) => w.toObject({ virtuals: true }))
-      .filter((w) => w.dynamicStatus === "Upcoming");
+      .filter(
+        (w) => w.dynamicStatus === "Upcoming" || w.dynamicStatus === "Live"
+      );
 
     res.json({
       success: true,
-      count: upcomingWebinars.length,
-      data: upcomingWebinars,
+      count: result.length,
+      data: result,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to fetch upcoming webinars",
+      message: "Failed to fetch webinars",
       error: error.message,
     });
   }
