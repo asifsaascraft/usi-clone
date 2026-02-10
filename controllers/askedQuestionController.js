@@ -52,7 +52,10 @@ export const getQuestionsByWebinar = async (req, res) => {
     const { webinarId } = req.params;
 
     const questions = await AskedQuestion.find({ webinarId })
-      .populate("webinarId", "name webinarType")
+      .populate(
+        "webinarId",
+        "name webinarType startDate endDate startTime endTime timeZone"
+      )
       .populate("userId", "name email profilePicture")
       .sort({ createdAt: -1 });
 

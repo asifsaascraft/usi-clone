@@ -85,7 +85,10 @@ export const getAllPublicFeedbacksByWebinar = async (req, res) => {
     }
 
     const feedbacks = await SubmitPublicFeedback.find({ webinarId })
-      .populate("webinarId", "name webinarType")
+      .populate(
+        "webinarId",
+        "name webinarType startDate endDate startTime endTime timeZone"
+      )
       .sort({ createdAt: -1 });
 
     return res.status(200).json({

@@ -12,7 +12,7 @@ export const submitFeedback = async (req, res) => {
   try {
     const { webinarId } = req.params;
     const { userId, sendFeedbacks, sendOtherFeedback } = req.body;
-    
+
     // Validate webinar
     const webinar = await Webinar.findById(webinarId);
     if (!webinar) {
@@ -122,7 +122,10 @@ export const getAllSubmitFeedbacksByWebinar = async (req, res) => {
     const { webinarId } = req.params;
 
     const feedbacks = await SendFeedback.find({ webinarId })
-      .populate("webinarId", "name webinarType")
+      .populate(
+        "webinarId",
+        "name webinarType startDate endDate startTime endTime timeZone"
+      )
       .populate("userId", "name email mobile profilePicture")
       .sort({ createdAt: -1 });
 
