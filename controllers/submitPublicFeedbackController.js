@@ -12,13 +12,13 @@ export const submitPublicFeedback = async (req, res) => {
     const { webinarId } = req.params;
 
     const {
-      participantAnswers,
-      sendFeedbacks,
-      openEndedAnswers,
-      sendOtherFeedback,
+      participantAnswers = [],
+      sendFeedbacks = [],
+      openEndedAnswers = [],
+      sendOtherFeedback = "",
     } = req.body;
 
-    // Validate webinar
+    //  Validate webinar
     const webinar = await Webinar.findById(webinarId);
     if (!webinar) {
       return res.status(404).json({
@@ -27,17 +27,17 @@ export const submitPublicFeedback = async (req, res) => {
       });
     }
 
-    // Check template exists
-    const adminFeedback = await Feedback.findOne({ webinarId });
-    if (!adminFeedback) {
+    //  Check feedback template created by admin
+    const template = await Feedback.findOne({ webinarId });
+    if (!template) {
       return res.status(400).json({
         success: false,
-        message: "Feedback form not created for this webinar",
+        message: "Feedback form not available for this webinar",
       });
     }
 
-    // Save
-    const feedback = await SubmitPublicFeedback.create({
+    //  Save submission
+    const submission = await SubmitPublicFeedback.create({
       webinarId,
       participantAnswers,
       sendFeedbacks,
@@ -48,7 +48,7 @@ export const submitPublicFeedback = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Feedback submitted successfully",
-      data: feedback,
+      data: submission,
     });
   } catch (error) {
     return res.status(500).json({
@@ -68,6 +68,7 @@ export const getAllPublicFeedbacksByWebinar = async (req, res) => {
   try {
     const { webinarId } = req.params;
 
+    //  Validate webinar
     const webinar = await Webinar.findById(webinarId);
     if (!webinar) {
       return res.status(404).json({

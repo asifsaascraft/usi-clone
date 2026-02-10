@@ -1,16 +1,56 @@
 import mongoose from "mongoose";
 
 /**
- * Objective answers (scale / yes-no)
+ * Participant Answer
  */
-const SubmittedFeedbackSchema = new mongoose.Schema(
+const ParticipantAnswerSchema = new mongoose.Schema(
   {
-    feedbackName: { type: String },
-    selectedOption: { type: String },
+    label: { type: String, default: "" },
+    answer: { type: mongoose.Schema.Types.Mixed },
   },
   { _id: false }
 );
 
+/**
+ * Question Answer
+ */
+const FeedbackAnswerItemSchema = new mongoose.Schema(
+  {
+    feedbackName: { type: String, default: "" },
+    answer: { type: mongoose.Schema.Types.Mixed },
+  },
+  { _id: false }
+);
+
+/**
+ * Label Answer
+ */
+const FeedbackAnswerLabelSchema = new mongoose.Schema(
+  {
+    feedbackLabelName: { type: String, default: "" },
+
+    answers: {
+      type: [FeedbackAnswerItemSchema],
+      default: [],
+    },
+  },
+  { _id: false }
+);
+
+/**
+ * Open Ended Answer
+ */
+const OpenEndedAnswerSchema = new mongoose.Schema(
+  {
+    label: { type: String, default: "" },
+    answer: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+/**
+ * Main
+ */
 const SubmitPublicFeedbackSchema = new mongoose.Schema(
   {
     webinarId: {
@@ -19,40 +59,24 @@ const SubmitPublicFeedbackSchema = new mongoose.Schema(
       required: true,
     },
 
-    /**
-     * Participant fields dynamic
-     * ex:
-     * { Name: "Asif", Profession: "Doctor" }
-     */
     participantAnswers: {
-      type: Map,
-      of: String,
-      default: {},
-    },
-
-    /**
-     * Objective answers
-     */
-    sendFeedbacks: {
-      type: [SubmittedFeedbackSchema],
+      type: [ParticipantAnswerSchema],
       default: [],
     },
 
-    /**
-     * Open ended answers
-     */
-    openEndedAnswers: {
-      type: Map,
-      of: String,
-      default: {},
+    //  UPDATED
+    sendFeedbacks: {
+      type: [FeedbackAnswerLabelSchema],
+      default: [],
     },
 
-    /**
-     * Additional comment
-     */
+    openEndedAnswers: {
+      type: [OpenEndedAnswerSchema],
+      default: [],
+    },
+
     sendOtherFeedback: {
       type: String,
-      trim: true,
       default: "",
     },
   },
