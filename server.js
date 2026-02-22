@@ -67,7 +67,7 @@ const corsOptions = {
     console.error("CORS blocked origin:", origin)
     return callback(new Error('Not allowed by CORS'))
   },
-  credentials: true, // 🔥 REQUIRED for cookies
+  credentials: true, //  REQUIRED for cookies
 }
 
 app.use(helmet())
