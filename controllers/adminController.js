@@ -139,7 +139,7 @@ export const refreshAccessToken = async (req, res) => {
 
     const admin = await User.findById(decoded.id)
     if (!admin) {
-      return res.status(401).json({ message: 'INVALID_USER' })
+      return res.status(401).json({ message: 'ADMIN NOT FOUND' })
     }
 
     const { accessToken } = generateTokens(admin._id, admin.role)
