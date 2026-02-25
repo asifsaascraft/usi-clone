@@ -4,19 +4,19 @@ import jwt from "jsonwebtoken";
 import sendEmailWithTemplate from "../utils/sendEmail.js";
 import sendOtpSMS from "../utils/sendOtpSMS.js";
 import crypto from "crypto";
+import { getCookieOptions } from "../utils/cookieOptions.js";
 
 /* =========================
    GET CURRENT USER SESSION
 ========================= */
 export const getUserSession = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store");
 
-    const authHeader = req.headers.authorization
-    if (!authHeader?.startsWith('Bearer ')) {
-      return res.status(401).json({ authenticated: false })
+    const token = req.cookies.accessToken;
+    if (!token) {
+      return res.status(401).json({ authenticated: false });
     }
-
-    const token = authHeader.replace('Bearer ', '')
 
     let decoded;
     try {
@@ -33,7 +33,7 @@ export const getUserSession = async (req, res) => {
       "-password -passwordResetToken -passwordResetExpires",
     );
 
-    if (!user) {
+    if (!user || user.role !== "user") {
       return res.status(401).json({ authenticated: false });
     }
 
@@ -242,7 +242,7 @@ export const loginUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Login OTP error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "No Valid credentials, Please contact technical support" });
   }
 };
 
@@ -251,6 +251,7 @@ export const loginUser = async (req, res) => {
 // =======================
 export const verifyLoginOtp = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store");
 
     const { userId, otp } = req.body;
 
@@ -279,10 +280,18 @@ export const verifyLoginOtp = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
 
+    res.cookie("accessToken", accessToken, {
+      ...getCookieOptions(),
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
+    res.cookie("refreshToken", refreshToken, {
+      ...getCookieOptions(),
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
     res.json({
       message: "Login successful",
-      accessToken,
-      refreshToken,
       user: {
         id: user._id,
         name: user.name,
@@ -302,40 +311,51 @@ export const verifyLoginOtp = async (req, res) => {
 // =======================
 export const refreshAccessTokenUser = async (req, res) => {
   try {
-    const refreshToken =
-      req.body.refreshToken ||
-      req.headers.authorization?.replace('Bearer ', '')
-
-    if (!refreshToken) {
-      return res.status(401).json({ message: 'NO_REFRESH_TOKEN' })
+    res.setHeader("Cache-Control", "no-store");
+    const token = req.cookies.refreshToken;
+    if (!token) {
+      return res.status(401).json({ message: "NO_REFRESH_TOKEN" });
     }
 
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET
-    )
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-    if (decoded.type !== 'refresh') {
-      return res.status(401).json({ message: 'INVALID_REFRESH_TOKEN' })
+    //  ADD THIS
+    if (decoded.type !== "refresh") {
+      return res.status(401).json({ message: "INVALID_REFRESH_TOKEN" });
     }
 
     const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(401).json({ message: "USER_NOT_FOUND" });
     }
-    
+    // (USER ROLE CHECK)
+    if (user.role !== "user") {
+      return res.status(403).json({ message: "NOT_USER_TOKEN" });
+    }
+
     const { accessToken } = generateTokens(user._id, user.role);
 
-    res.json({ accessToken });
+    //  FIX cookie expiry (see next section)
+    res.cookie("accessToken", accessToken, {
+      ...getCookieOptions(),
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
+    res.json({ success: true });
   } catch (err) {
+    res.clearCookie("accessToken", getCookieOptions());
     return res.status(401).json({ message: "INVALID_REFRESH_TOKEN" });
   }
 };
 
 // =======================
-// Logout  (OPTIONAL)
+// Logout User
 // =======================
 export const logoutUser = (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+
+  res.clearCookie("accessToken", getCookieOptions());
+  res.clearCookie("refreshToken", getCookieOptions());
   res.json({ message: "Logged out successfully" });
 };
 
@@ -344,6 +364,7 @@ export const logoutUser = (req, res) => {
 // =======================
 export const getUserProfile = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store");
 
     const user = await User.findById(req.user._id).select(
       "-password -plainPassword -passwordResetToken -passwordResetExpires",

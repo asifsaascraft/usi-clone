@@ -1,16 +1,13 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
 
-// 🔐 Protect routes using Authorization header
+// 🔐 Protect routes with JWT
 export const protect = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = req.cookies?.accessToken
+    if (!token) {
       return res.status(401).json({ message: 'NO_TOKEN' })
     }
-
-    const token = authHeader.replace('Bearer ', '')
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
@@ -30,12 +27,13 @@ export const protect = async (req, res, next) => {
   }
 }
 
-// 🔐 Role-based authorization (keep for future)
+
+// 🔐 Role-based authorization (reusable for any role)
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'ACCESS_DENIED' })
+      return res.status(403).json({ message: 'Access denied' })
     }
     next()
   }
-}
+};
